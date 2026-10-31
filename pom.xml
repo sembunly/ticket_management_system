@@ -8,27 +8,48 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.2</version>
+        <version>3.5.3</version>
         <relativePath/>
     </parent>
 
     <groupId>com.bunli</groupId>
     <artifactId>ticket_management_microservice</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-
     <packaging>pom</packaging>
 
     <name>ticket_management_microservice</name>
     <description>Parent project for Ticket Management Microservices</description>
 
     <modules>
-        <module>user-service</module>
-        <module>ticket-service</module>
         <module>common</module>
+        <module>user-service</module>
+        <module>api-gateway</module>
+        <module>event-service</module>
+        <module>ticket-service</module>
+        <module>order-service</module>
+        <module>payment-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>
         <java.version>21</java.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
