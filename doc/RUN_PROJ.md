@@ -37,7 +37,7 @@ The Compose file also starts pgAdmin and Zipkin. Their addresses and development
 | Component | Address | Login |
 |---|---|---|
 | PostgreSQL | `localhost:5432` | database `ticketdb`, user `ticketuser`, password `ticketpass` |
-| pgAdmin | <http://localhost:5050> | email `sembunly2005@gmail.com`, password `0000` |
+| pgAdmin | <http://localhost:5050> | email `sembunly2005@gmail.com`, password `ticketpass` |
 | Redis | `localhost:6379` | no password configured |
 | Kafka | `localhost:9092` | no authentication configured |
 | Zipkin | <http://localhost:9411> | no login |
@@ -74,7 +74,7 @@ docker compose -f deployment/infrastructure/docker-compose.yml exec postgres \
 Then create them (omit a statement if that role or database already exists):
 
 ```sql
-CREATE ROLE ticketuser LOGIN PASSWORD '0000';
+CREATE ROLE ticketuser LOGIN PASSWORD 'ticketpass';
 CREATE DATABASE ticketdb OWNER ticketuser;
 \q
 ```
@@ -86,7 +86,7 @@ For an existing PostgreSQL volume, changing the Compose environment variables do
 1. Open <http://localhost:5050> and sign in with the pgAdmin login in the table above.
 2. Choose **Add New Server**.
 3. On **General**, enter a name such as `Ticket Management Local`.
-4. On **Connection**, enter host `postgres`, port `5432`, maintenance database `ticketdb`, username `ticketuser`, and password `0000`.
+4. On **Connection**, enter host `postgres`, port `5432`, maintenance database `ticketdb`, username `ticketuser`, and password `ticketpass`.
 5. Save. Use host name `postgres` because pgAdmin itself runs inside the Compose network. Applications launched on your host use `localhost` instead.
 
 You can also connect with a local `psql` client:
@@ -102,7 +102,7 @@ The default `application.yml` files point to the local Compose database and use 
 ```bash
 export SPRING_DATASOURCE_URL='jdbc:postgresql://localhost:5432/ticketdb'
 export SPRING_DATASOURCE_USERNAME='ticketuser'
-export SPRING_DATASOURCE_PASSWORD='0000'
+export SPRING_DATASOURCE_PASSWORD='ticketpass'
 ```
 
 The JPA services use `ddl-auto: update`, so Hibernate creates or updates their tables while retaining existing rows across normal restarts. Keep the named Docker volume: `docker compose down` stops containers but preserves data. **Do not use `docker compose down -v` unless you intend to erase the PostgreSQL and Redis volumes.**
