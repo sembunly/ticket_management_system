@@ -4,9 +4,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.bunli.common.exception.ResponseErrorTemplate;
-import com.codestorykh.user.dto.request.CreateGroupRequest;
-import com.codestorykh.user.dto.request.GroupMemberRequest;
-import com.codestorykh.user.service.GroupService;
+import com.bunli.user.dto.request.CreateGroupRequest;
+import com.bunli.user.dto.request.GroupMemberRequest;
+import com.bunli.user.service.GroupService;
 
 import jakarta.validation.Valid;
 

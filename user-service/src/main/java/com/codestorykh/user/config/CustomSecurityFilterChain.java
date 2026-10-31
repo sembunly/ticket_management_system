@@ -13,13 +13,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.codestorykh.user.config.properties.JwtConfigProperties;
-import com.codestorykh.user.filter.CustomAccessDeniedHandler;
-import com.codestorykh.user.filter.CustomAuthenticationProvider;
-import com.codestorykh.user.filter.JwtAuthenticationFilter;
-import com.codestorykh.user.filter.JwtAuthenticationInternalFilter;
-import com.codestorykh.user.service.JwtService;
-import com.codestorykh.user.service.impl.CustomUserDetailService;
+import com.bunli.user.config.properties.JwtConfigProperties;
+import com.bunli.user.filter.CustomAccessDeniedHandler;
+import com.bunli.user.filter.CustomAuthenticationProvider;
+import com.bunli.user.filter.JwtAuthenticationFilter;
+import com.bunli.user.filter.JwtAuthenticationInternalFilter;
+import com.bunli.user.service.JwtService;
+import com.bunli.user.service.impl.CustomUserDetailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletResponse;

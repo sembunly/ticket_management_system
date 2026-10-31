@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import com.bunli.common.dto.UserRequest;
 import com.bunli.common.exception.GeneralErrorResponse;
 import com.bunli.common.exception.ResponseErrorTemplate;
-import com.codestorykh.user.dto.request.UserChangePasswordRequest;
-import com.codestorykh.user.dto.request.UserFilterRequest;
-import com.codestorykh.user.service.UserService;
+import com.bunli.user.dto.request.UserChangePasswordRequest;
+import com.bunli.user.dto.request.UserFilterRequest;
+import com.bunli.user.service.UserService;
 
 import lombok.extern.slf4j.Slf4j;
 

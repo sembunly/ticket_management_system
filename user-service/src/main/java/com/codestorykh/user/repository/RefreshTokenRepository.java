@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.codestorykh.user.entity.RefreshToken;
-import com.codestorykh.user.entity.User;
+import com.bunli.user.entity.RefreshToken;
+import com.bunli.user.entity.User;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Integer> {
