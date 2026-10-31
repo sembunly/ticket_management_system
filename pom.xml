@@ -13,7 +13,7 @@
     </parent>
 
     <groupId>com.bunli</groupId>
-    <artifactId>ticket_management_microservice</artifactId>
+    <artifactId>ticket-management-system-alpha</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
