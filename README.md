@@ -1,562 +1,727 @@
-# Architecture Ticket Management System
+# 🎟️ Ticket Management System
 
-## 🏗️ Overview
+<p align="center">
+  <strong>A Microservices-Based Ticket Management Platform</strong>
+  <br />
+  Designed for scalability, reliability, and independent service management.
+</p>
 
-The Ticket Management System is built as a **microservices architecture** with 7 core services, each handling specific business domains. The system is designed for high scalability, fault tolerance, and maintainability.
-
-## 📊 Architecture Diagram
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT APPLICATIONS                            │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│  │   Web App   │  │ Mobile App  │  │ Admin Panel │  │ Third Party │        │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘        │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              API GATEWAY (8080)                            │
-│  ┌─────────────────────────────────────────────────────────────────────────┐ │
-│  │ • Authentication & Authorization                                        │ │
-│  │ • Rate Limiting (Redis-based)                                          │ │
-│  │ • Request Routing                                                      │ │
-│  │ • Load Balancing                                                       │ │
-│  │ • Circuit Breaker                                                      │ │
-│  │ • Request/Response Logging                                             │ │
-│  └─────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                    ┌───────────────┼───────────────┐
-                    │               │               │
-                    ▼               ▼               ▼
-        ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-        │   USER SERVICE  │ │  EVENT SERVICE  │ │ TICKET SERVICE  │
-        │     (8081)      │ │     (8082)      │ │     (8083)      │
-        └─────────────────┘ └─────────────────┘ └─────────────────┘
-                    │               │               │
-                    └───────────────┼───────────────┘
-                                    │
-                                    ▼
-        ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-        │  ORDER SERVICE  │ │ PAYMENT SERVICE │ │NOTIFICATION SVC │
-        │     (8084)      │ │     (8085)      │ │     (8086)      │
-        └─────────────────┘ └─────────────────┘ └─────────────────┘
-                    │               │               │
-                    └───────────────┼───────────────┘
-                                    │
-                                    ▼
-                    ┌─────────────────────────────────┐
-                    │         INFRASTRUCTURE          │
-                    │  ┌─────────┐ ┌─────────┐       │
-                    │  │POSTGRES │ │  REDIS  │       │
-                    │  │ (5432)  │ │ (6379)  │       │
-                    │  └─────────┘ └─────────┘       │
-                    │  ┌─────────┐ ┌─────────┐       │
-                    │  │  KAFKA  │ │ ZOOKEEPER│       │
-                    │  │ (9092)  │ │ (2181)  │       │
-                    │  └─────────┘ └─────────┘       │
-                    └─────────────────────────────────┘
-```
-
-## 🔧 Service Details
-
-### 1. API Gateway Service (Port 8080)
-
-**Purpose**: Single entry point for all client requests
-
-**Responsibilities**:
-- **Authentication & Authorization**: JWT token validation via User Service
-- **Rate Limiting**: Redis-based rate limiting per client/IP
-- **Request Routing**: Route requests to appropriate microservices
-- **Load Balancing**: Distribute load across service instances
-- **Circuit Breaker**: Prevent cascade failures
-- **Request/Response Logging**: Centralized logging
-- **CORS Handling**: Cross-origin resource sharing
-- **API Documentation**: Swagger/OpenAPI integration
-
-**Key Components**:
-```java
-- AuthenticationFilter: JWT validation
-- RateLimitFilter: Redis-based rate limiting
-- RouteConfigService: Dynamic route configuration
-- RedisService: Caching and rate limiting
-- JwtService: Token validation delegation
-```
-
-**Communication Patterns**:
-- **Synchronous**: Validates JWT tokens with User Service
-- **Asynchronous**: Logs requests/events to Kafka
-- **Caching**: Redis for rate limiting and route configs
+<p align="center">
+  <img src="https://img.shields.io/badge/Architecture-Microservices-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Backend-Spring%20Boot-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL-336791?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Messaging-Apache%20Kafka-black?style=for-the-badge" />
+</p>
 
 ---
 
-### 2. User Service (Port 8081)
+## 📖 Overview
 
-**Purpose**: User management and authentication
+The **Ticket Management System** is built using a **Microservices Architecture** consisting of 7 core services. Each service manages a specific business domain and communicates with other services through REST APIs and asynchronous messaging.
 
-**Responsibilities**:
-- **User Registration**: Create new user accounts
-- **User Authentication**: Login/logout functionality
-- **JWT Token Management**: Generate and validate tokens
-- **User Profile Management**: CRUD operations on user profiles
-- **Role Management**: User roles and permissions
-- **Password Management**: Secure password handling
+The architecture focuses on:
 
-**Key Components**:
-```java
-- UserController: REST endpoints for user operations
-- UserService: Business logic for user management
-- JwtService: JWT token generation and validation
-- UserRepository: Data access layer
-- PasswordEncoder: Secure password encoding
+- **Scalability** — Scale individual services independently.
+- **Fault Tolerance** — Handle service failures using circuit breakers and retry mechanisms.
+- **Maintainability** — Keep business responsibilities separated.
+- **Loose Coupling** — Enable communication through APIs and events.
+- **Observability** — Monitor and trace requests across services.
+
+## 🏛️ System Architecture
+
+The system follows a layered architecture, separating client applications, API Gateway, business services, and supporting infrastructure.
+
+### Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph CLIENT["CLIENT APPLICATIONS"]
+        WEB["Web App"]
+        MOBILE["Mobile App"]
+        ADMIN["Admin Panel"]
+        THIRD["Third Party"]
+    end
+
+    subgraph GATEWAY["API GATEWAY · 8080"]
+        GW["Authentication · Authorization<br/>Rate Limiting · Routing<br/>Load Balancing · Circuit Breaker<br/>Logging · CORS"]
+    end
+
+    subgraph SERVICES["MICROSERVICES"]
+        USER["User Service<br/>8081"]
+        EVENT["Event Service<br/>8082"]
+        TICKET["Ticket Service<br/>8083"]
+        ORDER["Order Service<br/>8084"]
+        PAYMENT["Payment Service<br/>8085"]
+        NOTIFY["Notification Service<br/>8086"]
+    end
+
+    subgraph INFRA["SUPPORTING INFRASTRUCTURE"]
+        DB[("PostgreSQL<br/>5432")]
+        REDIS[("Redis<br/>6379")]
+        KAFKA[["Kafka<br/>9092"]]
+        ZK["ZooKeeper<br/>2181"]
+    end
+
+    WEB --> GW
+    MOBILE --> GW
+    ADMIN --> GW
+    THIRD --> GW
+
+    GW --> USER
+    GW --> EVENT
+    GW --> TICKET
+    GW --> ORDER
+    GW --> PAYMENT
+    GW --> NOTIFY
+
+    USER --> DB
+    EVENT --> DB
+    TICKET --> DB
+    ORDER --> DB
+    PAYMENT --> DB
+    NOTIFY --> DB
+
+    GW --> REDIS
+    USER --> REDIS
+    EVENT --> REDIS
+    TICKET --> REDIS
+
+    USER <--> KAFKA
+    EVENT <--> KAFKA
+    TICKET <--> KAFKA
+    ORDER <--> KAFKA
+    PAYMENT <--> KAFKA
+    NOTIFY <--> KAFKA
+
+    ZK --- KAFKA
 ```
 
-**Database Schema**:
-```sql
-users:
-- id (PK)
-- username (unique)
-- email (unique)
-- password (encrypted)
-- first_name
-- last_name
-- phone_number
-- role (USER, ADMIN)
-- created_at
-- updated_at
-```
+### Architecture Layers
 
-**Communication Patterns**:
-- **Synchronous**: REST API calls from other services
-- **Asynchronous**: Publishes user events to Kafka
-- **Caching**: Redis for user session data
+| Layer | Responsibility |
+|---|---|
+| Client Applications | Web, Mobile, Admin, and Third-Party clients |
+| API Gateway | Single entry point and request management |
+| Microservices | Independent business domain operations |
+| Infrastructure | Database, caching, messaging, and coordination |
 
----
+## ⚙️ Technology & Infrastructure
 
-### 3. Event Service (Port 8082)
+The system uses the following supporting technologies:
 
-**Purpose**: Event management and administration
-
-**Responsibilities**:
-- **Event CRUD**: Create, read, update, delete events
-- **Event Search**: Search and filter events
-- **Event Categories**: Manage event types and categories
-- **Event Status Management**: Active, inactive, cancelled events
-- **Event Capacity Management**: Track available seats
-- **Event Analytics**: Basic event statistics
-
-**Key Components**:
-```java
-- EventController: REST endpoints for event operations
-- EventService: Business logic for event management
-- EventRepository: Data access layer
-- EventSearchService: Search and filtering logic
-```
-
-**Database Schema**:
-```sql
-events:
-- id (PK)
-- title
-- description
-- location
-- date
-- capacity
-- available_seats
-- base_price
-- event_type (CONCERT, SPORTS, THEATER, etc.)
-- status (ACTIVE, INACTIVE, CANCELLED)
-- created_at
-- updated_at
-```
-
-**Communication Patterns**:
-- **Synchronous**: REST API calls from other services
-- **Asynchronous**: Publishes event updates to Kafka
-- **Caching**: Redis for event listings and search results
+| Technology | Purpose |
+|---|---|
+| Spring Boot | Microservices application framework |
+| PostgreSQL | Relational database |
+| pgAdmin | Database administration |
+| Redis | Caching, sessions, and distributed locking |
+| Apache Kafka | Asynchronous messaging and event streaming |
+| ZooKeeper | Distributed coordination for Kafka |
+| Zipkin | Distributed tracing |
+| Maven | Build and dependency management |
+| Docker Compose | Supporting infrastructure management |
 
 ---
 
-### 4. Ticket Service (Port 8083)
+# 🧩 Microservices Overview
 
-**Purpose**: Ticket inventory and availability management
+The platform consists of 7 independent services. Each service owns a specific business responsibility.
 
-**Responsibilities**:
-- **Ticket Inventory**: Manage ticket availability
-- **Seat Management**: Handle seat assignments and conflicts
-- **Ticket Locking**: Temporary ticket holds during purchase
-- **Ticket Status Management**: Available, locked, sold, cancelled
-- **Expired Lock Cleanup**: Automatic cleanup of expired locks
-- **Ticket Analytics**: Availability statistics
-
-**Key Components**:
-```java
-- TicketController: REST endpoints for ticket operations
-- TicketService: Business logic for ticket management
-- TicketRepository: Data access layer
-- ScheduledTasks: Cleanup expired locks
-- RedisService: Distributed locking
-```
-
-**Database Schema**:
-```sql
-tickets:
-- id (PK)
-- event_id (FK)
-- seat_number
-- price
-- ticket_type (VIP, STANDARD, etc.)
-- status (AVAILABLE, LOCKED, SOLD, CANCELLED)
-- locked_until
-- locked_by (user_id)
-- created_at
-- updated_at
-```
-
-**Communication Patterns**:
-- **Synchronous**: REST API calls from Order Service
-- **Asynchronous**: Publishes ticket status changes to Kafka
-- **Distributed Locking**: Redis for ticket locking
-- **Scheduled Tasks**: Cleanup expired locks
+| # | Service | Port | Main Responsibility |
+|---:|---|---:|---|
+| 1 | API Gateway | `8080` | Entry point, routing, and security |
+| 2 | User Service | `8081` | User management and authentication |
+| 3 | Event Service | `8082` | Event management |
+| 4 | Ticket Service | `8083` | Ticket inventory and availability |
+| 5 | Order Service | `8084` | Order processing and orchestration |
+| 6 | Payment Service | `8085` | Payment processing |
+| 7 | Notification Service | `8086` | Notification delivery |
 
 ---
 
-### 5. Order Service (Port 8084)
+## 1. 🚪 API Gateway Service
 
-**Purpose**: Order processing and orchestration
+<sub>PORT: `8080` · ENTRY POINT</sub>
 
-**Responsibilities**:
-- **Order Creation**: Create new orders
-- **Order Orchestration**: Coordinate between services
-- **Order Status Management**: Track order lifecycle
-- **Payment Integration**: Coordinate with Payment Service
-- **Ticket Reservation**: Lock tickets during order process
-- **Order Cancellation**: Handle order cancellations and refunds
-- **Order History**: User order history and tracking
+**Purpose:** Provides a single entry point for all client requests and routes them to the appropriate microservices.
 
-**Key Components**:
-```java
-- OrderController: REST endpoints for order operations
-- OrderService: Business logic for order management
-- OrderEventService: Async event publishing
-- UserServiceClient: Feign client for User Service
-- TicketServiceClient: Feign client for Ticket Service
-- PaymentServiceClient: Feign client for Payment Service
-```
+### Responsibilities
 
-**Database Schema**:
-```sql
-orders:
-- id (PK)
-- user_id (FK)
-- ticket_id (FK)
-- event_id (FK)
-- status (PENDING, CONFIRMED, CANCELLED, FAILED)
-- total_amount
-- quantity
-- payment_id
-- order_date
-- created_at
-- updated_at
-```
+- **Authentication & Authorization** — Validate JWT tokens through User Service.
+- **Rate Limiting** — Limit requests per client or IP using Redis.
+- **Request Routing** — Forward requests to the appropriate services.
+- **Load Balancing** — Distribute traffic across service instances.
+- **Circuit Breaker** — Prevent cascading failures.
+- **Request/Response Logging** — Centralized request logging.
+- **CORS Handling** — Manage cross-origin requests.
+- **API Documentation** — Integrate Swagger/OpenAPI.
 
-**Communication Patterns**:
-- **Synchronous**: REST calls to User, Ticket, and Payment services
-- **Asynchronous**: Publishes order events to Kafka
-- **Circuit Breaker**: Resilience4j for external service calls
-- **Retry Logic**: Automatic retry for failed operations
+### Key Components
+
+| Component | Responsibility |
+|---|---|
+| `AuthenticationFilter` | JWT validation |
+| `RateLimitFilter` | Redis-based rate limiting |
+| `RouteConfigService` | Dynamic route configuration |
+| `RedisService` | Caching and rate limiting |
+| `JwtService` | Token validation delegation |
+
+### Communication Patterns
+
+- **Synchronous:** JWT validation with User Service.
+- **Asynchronous:** Request/event logging through Kafka.
+- **Caching:** Redis for rate limiting and route configurations.
 
 ---
 
-### 6. Payment Service (Port 8085)
+## 2. 👤 User Service
 
-**Purpose**: Payment processing and management
+<sub>PORT: `8081` · USER MANAGEMENT</sub>
 
-**Responsibilities**:
-- **Payment Processing**: Handle various payment methods
-- **Payment Gateway Integration**: Multiple payment gateways
-- **Payment Status Tracking**: Track payment lifecycle
-- **Refund Processing**: Handle payment refunds
-- **Payment Analytics**: Payment statistics and reporting
-- **Fraud Detection**: Basic fraud prevention
+**Purpose:** Manages user accounts, authentication, authorization, and profile information.
 
-**Key Components**:
-```java
-- PaymentController: REST endpoints for payment operations
-- PaymentService: Business logic for payment processing
-- PaymentGatewayService: Integration with payment gateways
-- PaymentRepository: Data access layer
-- FraudDetectionService: Basic fraud prevention
-```
+### Responsibilities
 
-**Database Schema**:
-```sql
-payments:
-- id (PK)
-- order_id (FK)
-- user_id (FK)
-- amount
-- currency
-- payment_method (CREDIT_CARD, DEBIT_CARD, etc.)
-- status (PENDING, COMPLETED, FAILED, REFUNDED)
-- gateway_transaction_id
-- gateway_response
-- payment_date
-- created_at
-- updated_at
-```
+- User Registration — Create new user accounts.
+- User Authentication — Login and logout functionality.
+- JWT Token Management — Generate and validate tokens.
+- User Profile Management — CRUD operations on user profiles.
+- Role Management — Manage user roles and permissions.
+- Password Management — Secure password handling.
 
-**Communication Patterns**:
-- **Synchronous**: REST API calls from Order Service
-- **Asynchronous**: Publishes payment events to Kafka
-- **External APIs**: Payment gateway integrations
-- **Circuit Breaker**: Handle payment gateway failures
+### Key Components
 
----
+| Component | Responsibility |
+|---|---|
+| `UserController` | REST endpoints for user operations |
+| `UserService` | User management business logic |
+| `JwtService` | JWT generation and validation |
+| `UserRepository` | Database access |
+| `PasswordEncoder` | Secure password encoding |
 
-### 7. Notification Service (Port 8086)
+### Database Schema
 
-**Purpose**: Notification delivery and management
+**Table: `users`**
 
-**Responsibilities**:
-- **Email Notifications**: Send email notifications
-- **SMS Notifications**: Send SMS notifications
-- **Push Notifications**: Mobile push notifications
-- **Notification Templates**: Manage notification templates
-- **Notification History**: Track sent notifications
-- **Retry Logic**: Handle failed notifications
-- **Notification Preferences**: User notification settings
+| Column | Description |
+|---|---|
+| `id` | Primary Key |
+| `username` | Unique username |
+| `email` | Unique email |
+| `password` | Encrypted password |
+| `first_name` | First name |
+| `last_name` | Last name |
+| `phone_number` | Phone number |
+| `role` | USER, ADMIN |
+| `created_at` | Creation timestamp |
+| `updated_at` | Last update timestamp |
 
-**Key Components**:
-```java
-- NotificationController: REST endpoints for notification operations
-- NotificationService: Business logic for notification management
-- EmailService: Email delivery service
-- SmsService: SMS delivery service
-- KafkaListener: Consume notification events
-- NotificationRepository: Data access layer
-```
+### Communication Patterns
 
-**Database Schema**:
-```sql
-notifications:
-- id (PK)
-- user_id (FK)
-- order_id (FK)
-- type (EMAIL, SMS, PUSH)
-- subject
-- content
-- status (PENDING, SENT, FAILED)
-- retry_count
-- sent_at
-- created_at
-- updated_at
-```
-
-**Communication Patterns**:
-- **Asynchronous**: Consumes events from Kafka
-- **External APIs**: Email/SMS service integrations
-- **Retry Logic**: Handle delivery failures
-- **Batch Processing**: Process notifications in batches
+- **Synchronous:** REST API calls from other services.
+- **Asynchronous:** Publishes user events to Kafka.
+- **Caching:** Redis for user session data.
 
 ---
 
-## 🔄 Service Communication Patterns
+## 3. 🎫 Event Service
 
-### 1. Synchronous Communication (REST APIs)
+<sub>PORT: `8082` · EVENT MANAGEMENT</sub>
 
-**Pattern**: Request-Response
-**Use Cases**: Real-time operations requiring immediate response
+**Purpose:** Manages events, event categories, availability, and event information.
 
-**Services Using REST**:
-- **API Gateway ↔ User Service**: JWT validation
-- **Order Service ↔ User Service**: User validation
-- **Order Service ↔ Ticket Service**: Ticket operations
-- **Order Service ↔ Payment Service**: Payment processing
+### Responsibilities
 
-### 2. Asynchronous Communication (Kafka)
+- Event CRUD — Create, read, update, and delete events.
+- Event Search — Search and filter events.
+- Event Categories — Manage event types and categories.
+- Event Status Management — Active, inactive, and cancelled events.
+- Event Capacity Management — Track available seats.
+- Event Analytics — Generate basic event statistics.
 
-**Pattern**: Event-Driven Architecture
-**Use Cases**: Non-blocking operations, notifications, analytics
+### Key Components
 
-**Event Topics**:
-- `order-created`: New order created
-- `order-confirmed`: Order payment confirmed
-- `order-cancelled`: Order cancelled
-- `payment-processed`: Payment completed
-- `ticket-locked`: Tickets locked
-- `ticket-sold`: Tickets sold
-- `user-registered`: New user registered
+| Component | Responsibility |
+|---|---|
+| `EventController` | REST endpoints for event operations |
+| `EventService` | Event business logic |
+| `EventRepository` | Database access |
+| `EventSearchService` | Search and filtering logic |
 
-### 3. Caching Communication (Redis)
+### Database Schema
 
-**Pattern**: Cache-Aside
-**Use Cases**: Frequently accessed data, session management
+**Table: `events`**
 
-**Cached Data**:
-- **User Sessions**: JWT tokens, user info
-- **Event Data**: Event listings, search results
-- **Ticket Availability**: Available ticket counts
-- **Rate Limiting**: Request counts per client
-- **Route Configuration**: API Gateway routes
+| Column | Description |
+|---|---|
+| `id` | Primary Key |
+| `title` | Event title |
+| `description` | Event description |
+| `location` | Event location |
+| `date` | Event date |
+| `capacity` | Total capacity |
+| `available_seats` | Available seats |
+| `base_price` | Base ticket price |
+| `event_type` | CONCERT, SPORTS, THEATER, etc. |
+| `status` | ACTIVE, INACTIVE, CANCELLED |
+| `created_at` | Creation timestamp |
+| `updated_at` | Last update timestamp |
 
-### 4. Database Communication
+### Communication Patterns
 
-**Pattern**: Repository Pattern
-**Use Cases**: Data persistence, transactions
-
-**Database Patterns**:
-- **Shared Database**: All services use same PostgreSQL instance
-- **Repository Pattern**: Abstract data access
-- **Transaction Management**: ACID compliance
-- **Connection Pooling**: HikariCP for performance
-
----
-
-## 🔐 Security Architecture
-
-### 1. Authentication & Authorization
-
-**Security Components**:
-- **JWT Tokens**: Stateless authentication
-- **Role-Based Access Control**: User roles and permissions
-- **API Gateway Security**: Centralized security enforcement
-- **Service-to-Service Security**: Internal network security
-
-### 2. Rate Limiting
-
-**Rate Limiting Strategy**:
-- **Per Client/IP**: Individual client limits
-- **Per Endpoint**: Different limits for different APIs
-- **Sliding Window**: Time-based rate limiting
-- **Redis Storage**: Distributed rate limiting
+- **Synchronous:** REST API calls from other services.
+- **Asynchronous:** Publishes event updates to Kafka.
+- **Caching:** Redis for event listings and search results.
 
 ---
 
-## 📈 Scalability Patterns
+## 4. 🎟️ Ticket Service
 
-### 1. Horizontal Scaling
+<sub>PORT: `8083` · INVENTORY MANAGEMENT</sub>
 
-**Scaling Strategies**:
-- **Service Replication**: Multiple instances per service
-- **Load Balancing**: Distribute load across instances
-- **Auto-scaling**: Scale based on metrics
-- **Database Scaling**: Read replicas, sharding
+**Purpose:** Manages ticket inventory, seat assignments, availability, and temporary ticket reservations.
 
-### 2. Caching Strategy
+### Responsibilities
 
-**Caching Layers**:
-- **Application Cache**: In-memory caching
-- **Distributed Cache**: Redis for shared data
-- **Database Cache**: Query result caching
-- **CDN Cache**: Static content caching
+- Ticket Inventory — Manage ticket availability.
+- Seat Management — Handle seat assignments and conflicts.
+- Ticket Locking — Temporarily hold tickets during purchases.
+- Ticket Status Management — Available, locked, sold, and cancelled.
+- Expired Lock Cleanup — Automatically clean expired locks.
+- Ticket Analytics — Track ticket availability statistics.
 
-### 3. Circuit Breaker Pattern
+### Key Components
 
-**Circuit Breaker Implementation**:
-- **Resilience4j**: Circuit breaker library
-- **Failure Threshold**: Configurable failure limits
-- **Timeout**: Automatic recovery attempts
-- **Fallback**: Graceful degradation
+| Component | Responsibility |
+|---|---|
+| `TicketController` | REST endpoints for ticket operations |
+| `TicketService` | Ticket business logic |
+| `TicketRepository` | Database access |
+| `ScheduledTasks` | Cleanup expired locks |
+| `RedisService` | Distributed locking |
 
----
+### Database Schema
 
-## 🔍 Monitoring & Observability
+**Table: `tickets`**
 
-### 1. Health Checks
+| Column | Description |
+|---|---|
+| `id` | Primary Key |
+| `event_id` | Event reference |
+| `seat_number` | Seat number |
+| `price` | Ticket price |
+| `ticket_type` | VIP, STANDARD, etc. |
+| `status` | AVAILABLE, LOCKED, SOLD, CANCELLED |
+| `locked_until` | Lock expiration time |
+| `locked_by` | User ID holding the ticket |
+| `created_at` | Creation timestamp |
+| `updated_at` | Last update timestamp |
 
-**Health Check Endpoints**:
-- `/actuator/health`: Basic health status
-- `/actuator/health/db`: Database connectivity
-- `/actuator/health/redis`: Redis connectivity
-- `/actuator/health/kafka`: Kafka connectivity
+### Communication Patterns
 
-### 2. Metrics Collection
-
-**Metrics Types**:
-- **Application Metrics**: Request rates, response times
-- **Business Metrics**: Orders, payments, tickets
-- **Infrastructure Metrics**: CPU, memory, disk
-- **Custom Metrics**: Business-specific KPIs
-
-### 3. Distributed Tracing
-
-**Tracing Implementation**:
-- **Sleuth**: Distributed tracing
-- **Zipkin**: Trace visualization
-- **Trace IDs**: Request correlation
-- **Span Tracking**: Operation timing
+- **Synchronous:** REST API calls from Order Service.
+- **Asynchronous:** Publishes ticket status changes to Kafka.
+- **Distributed Locking:** Redis for ticket locking.
+- **Scheduled Tasks:** Cleanup expired locks.
 
 ---
 
-## 🚀 Deployment Architecture
+## 5. 🛒 Order Service
 
-### 1. Container Orchestration
+<sub>PORT: `8084` · ORDER PROCESSING</sub>
 
-**Deployment Components**:
-- **Docker Containers**: Service packaging
-- **Kubernetes**: Container orchestration
-- **Service Mesh**: Istio for advanced networking
-- **CI/CD**: Automated deployment pipelines
+**Purpose:** Handles order creation and coordinates the purchasing process across multiple services.
 
-### 2. Environment Strategy
+### Responsibilities
 
-**Environment Types**:
-- **Development**: Local Docker Compose
-- **Staging**: Production-like environment
-- **Production**: High-availability setup
+- Order Creation — Create new orders.
+- Order Orchestration — Coordinate operations between services.
+- Order Status Management — Track order lifecycle.
+- Payment Integration — Coordinate with Payment Service.
+- Ticket Reservation — Lock tickets during the order process.
+- Order Cancellation — Handle cancellations and refunds.
+- Order History — Provide user order history and tracking.
 
----
+### Key Components
 
-## 📋 Service Dependencies
+| Component | Responsibility |
+|---|---|
+| `OrderController` | REST endpoints for order operations |
+| `OrderService` | Order business logic |
+| `OrderEventService` | Asynchronous event publishing |
+| `UserServiceClient` | Feign client for User Service |
+| `TicketServiceClient` | Feign client for Ticket Service |
+| `PaymentServiceClient` | Feign client for Payment Service |
 
-### 1. Infrastructure Dependencies
+### Database Schema
 
-| Service              | Database | Redis | Kafka | External APIs |
-|----------------------|----------|-------|-------|---------------|
-| API Gateway          | ✅        | ✅     | ✅     | ✅             |
-| User Service         | ✅        | ✅     | ✅     | ❌             |
-| Event Service        | ✅        | ✅     | ✅     | ❌             |
-| Ticket Service       | ✅        | ✅     | ✅     | ❌             |
-| Order Service        | ✅        | ✅     | ✅     | ✅             |
-| Payment Service      | ✅        | ✅     | ✅     | ✅             |
-| Notification Service | ✅        | ✅     | ✅     | ✅             |
+**Table: `orders`**
 
-### 2. Service Dependencies
+| Column | Description |
+|---|---|
+| `id` | Primary Key |
+| `user_id` | User reference |
+| `ticket_id` | Ticket reference |
+| `event_id` | Event reference |
+| `status` | PENDING, CONFIRMED, CANCELLED, FAILED |
+| `total_amount` | Total order amount |
+| `quantity` | Ticket quantity |
+| `payment_id` | Payment reference |
+| `order_date` | Order date |
+| `created_at` | Creation timestamp |
+| `updated_at` | Last update timestamp |
 
-| Service              | Depends On                                    | Communication Type           |
-|----------------------|-----------------------------------------------|------------------------------|
-| API Gateway          | User Service                                  | Synchronous (JWT validation) |
-| Order Service        | User Service, Ticket Service, Payment Service | Synchronous (REST)           |
-| Notification Service | All Services                                  | Asynchronous (Kafka)         |
-| Payment Service      | Order Service                                 | Synchronous (REST)           |
+### Communication Patterns
 
----
-
-## 🎯 Key Design Principles
-
-### 1. Single Responsibility Principle
-Each service has a single, well-defined responsibility and business domain.
-
-### 2. Loose Coupling
-Services communicate through well-defined APIs and events, not direct dependencies.
-
-### 3. High Cohesion
-Related functionality is grouped together within each service.
-
-### 4. Fault Tolerance
-Services are designed to handle failures gracefully with circuit breakers and fallbacks.
-
-### 5. Scalability
-Services can be scaled independently based on demand.
-
-### 6. Observability
-Comprehensive monitoring, logging, and tracing for all services.
-
-### 7. Security
-Security is implemented in multiple layers with proper authentication and authorization.
+- **Synchronous:** REST calls to User, Ticket, and Payment Services.
+- **Asynchronous:** Publishes order events to Kafka.
+- **Circuit Breaker:** Resilience4j for external service calls.
+- **Retry Logic:** Automatic retry for failed operations.
 
 ---
 
-This architecture provides a robust, scalable, and maintainable foundation for the Ticket Management System, capable of handling high loads while maintaining system reliability and performance. 
+## 6. 💳 Payment Service
+
+<sub>PORT: `8085` · PAYMENT PROCESSING</sub>
+
+**Purpose:** Handles payment processing, payment status tracking, refunds, and payment gateway integrations.
+
+### Responsibilities
+
+- Payment Processing — Handle different payment methods.
+- Payment Gateway Integration — Integrate multiple payment gateways.
+- Payment Status Tracking — Track payment lifecycle.
+- Refund Processing — Handle payment refunds.
+- Payment Analytics — Payment statistics and reporting.
+- Fraud Detection — Basic fraud prevention.
+
+### Key Components
+
+| Component | Responsibility |
+|---|---|
+| `PaymentController` | REST endpoints for payment operations |
+| `PaymentService` | Payment business logic |
+| `PaymentGatewayService` | Payment gateway integration |
+| `PaymentRepository` | Database access |
+| `FraudDetectionService` | Basic fraud prevention |
+
+### Database Schema
+
+**Table: `payments`**
+
+| Column | Description |
+|---|---|
+| `id` | Primary Key |
+| `order_id` | Order reference |
+| `user_id` | User reference |
+| `amount` | Payment amount |
+| `currency` | Currency |
+| `payment_method` | CREDIT_CARD, DEBIT_CARD, etc. |
+| `status` | PENDING, COMPLETED, FAILED, REFUNDED |
+| `gateway_transaction_id` | Gateway transaction ID |
+| `gateway_response` | Gateway response |
+| `payment_date` | Payment date |
+| `created_at` | Creation timestamp |
+| `updated_at` | Last update timestamp |
+
+### Communication Patterns
+
+- **Synchronous:** REST API calls from Order Service.
+- **Asynchronous:** Publishes payment events to Kafka.
+- **External APIs:** Payment gateway integrations.
+- **Circuit Breaker:** Handles payment gateway failures.
+
+---
+
+## 7. 🔔 Notification Service
+
+<sub>PORT: `8086` · NOTIFICATION DELIVERY</sub>
+
+**Purpose:** Handles notification delivery and notification history across the platform.
+
+### Responsibilities
+
+- Email Notifications — Send email notifications.
+- SMS Notifications — Send SMS notifications.
+- Push Notifications — Send mobile push notifications.
+- Notification Templates — Manage notification templates.
+- Notification History — Track sent notifications.
+- Retry Logic — Handle failed notifications.
+- Notification Preferences — Manage user notification settings.
+
+### Key Components
+
+| Component | Responsibility |
+|---|---|
+| `NotificationController` | REST endpoints for notification operations |
+| `NotificationService` | Notification business logic |
+| `EmailService` | Email delivery |
+| `SmsService` | SMS delivery |
+| `KafkaListener` | Consume Kafka notification events |
+| `NotificationRepository` | Database access |
+
+### Database Schema
+
+**Table: `notifications`**
+
+| Column | Description |
+|---|---|
+| `id` | Primary Key |
+| `user_id` | User reference |
+| `order_id` | Order reference |
+| `type` | EMAIL, SMS, PUSH |
+| `subject` | Notification subject |
+| `content` | Notification content |
+| `status` | PENDING, SENT, FAILED |
+| `retry_count` | Number of retries |
+| `sent_at` | Sent timestamp |
+| `created_at` | Creation timestamp |
+| `updated_at` | Last update timestamp |
+
+### Communication Patterns
+
+- **Asynchronous:** Consumes events from Kafka.
+- **External APIs:** Email and SMS integrations.
+- **Retry Logic:** Handles delivery failures.
+- **Batch Processing:** Processes notifications in batches.
+
+---
+
+# 🔄 Service Communication
+
+The system uses multiple communication patterns depending on the operation and business requirement.
+
+## 1. Synchronous Communication — REST APIs
+
+**Pattern:** Request–Response
+
+Used for operations that require an immediate response.
+
+| Service Communication | Purpose |
+|---|---|
+| API Gateway ↔ User Service | JWT validation |
+| Order Service ↔ User Service | User validation |
+| Order Service ↔ Ticket Service | Ticket operations |
+| Order Service ↔ Payment Service | Payment processing |
+
+## 2. Asynchronous Communication — Kafka
+
+**Pattern:** Event-Driven Architecture
+
+Used for non-blocking operations, notifications, and analytics.
+
+### Event Topics
+
+| Kafka Topic | Description |
+|---|---|
+| `order-created` | A new order has been created |
+| `order-confirmed` | Order payment has been confirmed |
+| `order-cancelled` | An order has been cancelled |
+| `payment-processed` | Payment has been completed |
+| `ticket-locked` | Tickets have been locked |
+| `ticket-sold` | Tickets have been sold |
+| `user-registered` | A new user has registered |
+
+## 3. Caching Communication — Redis
+
+**Pattern:** Cache-Aside
+
+Used for frequently accessed data and session management.
+
+| Cached Data | Purpose |
+|---|---|
+| User Sessions | JWT tokens and user information |
+| Event Data | Event listings and search results |
+| Ticket Availability | Available ticket counts |
+| Rate Limiting | Request counts per client |
+| Route Configuration | API Gateway route configurations |
+
+## 4. Database Communication
+
+**Pattern:** Repository Pattern
+
+Used for data persistence and transaction management.
+
+### Database Patterns
+
+- **Shared Database:** All services use the same PostgreSQL instance.
+- **Repository Pattern:** Abstract database access.
+- **Transaction Management:** ACID compliance.
+- **Connection Pooling:** HikariCP for database connection performance.
+
+---
+
+# 🔐 Security Architecture
+
+Security is implemented across the platform to protect user accounts, APIs, and internal service communication.
+
+## Authentication & Authorization
+
+| Security Component | Purpose |
+|---|---|
+| JWT Tokens | Stateless authentication |
+| Role-Based Access Control | User roles and permissions |
+| API Gateway Security | Centralized security enforcement |
+| Service-to-Service Security | Internal network security |
+
+## Rate Limiting
+
+The system uses Redis-based rate limiting to control incoming API traffic.
+
+- **Per Client/IP:** Apply individual client limits.
+- **Per Endpoint:** Configure different limits for different APIs.
+- **Sliding Window:** Time-based rate limiting.
+- **Redis Storage:** Share rate limit data across instances.
+
+---
+
+# 📈 Scalability & Resilience
+
+## 1. Horizontal Scaling
+
+The architecture supports independent scaling of services.
+
+- **Service Replication:** Run multiple instances of each service.
+- **Load Balancing:** Distribute traffic across service instances.
+- **Auto-scaling:** Scale based on system metrics.
+- **Database Scaling:** Read replicas and sharding.
+
+## 2. Caching Strategy
+
+The system uses multiple caching layers to improve performance.
+
+| Caching Layer | Purpose |
+|---|---|
+| Application Cache | In-memory application caching |
+| Distributed Cache | Redis for shared data |
+| Database Cache | Query result caching |
+| CDN Cache | Static content caching |
+
+## 3. Circuit Breaker Pattern
+
+**Implementation:** Resilience4j
+
+| Mechanism | Purpose |
+|---|---|
+| Failure Threshold | Configure failure limits |
+| Timeout | Control waiting time and recovery attempts |
+| Fallback | Provide graceful degradation |
+| Circuit Breaker | Prevent cascading failures |
+
+---
+
+# 🔍 Monitoring & Observability
+
+Monitoring and observability help track application health, performance, and requests across multiple services.
+
+## 1. Health Checks
+
+The system exposes Spring Boot Actuator health endpoints.
+
+| Endpoint | Purpose |
+|---|---|
+| `/actuator/health` | Overall application health |
+| `/actuator/health/db` | Database connectivity |
+| `/actuator/health/redis` | Redis connectivity |
+| `/actuator/health/kafka` | Kafka connectivity |
+
+## 2. Metrics Collection
+
+The architecture tracks several types of metrics:
+
+- **Application Metrics:** Request rates and response times.
+- **Business Metrics:** Orders, payments, and tickets.
+- **Infrastructure Metrics:** CPU, memory, and disk usage.
+- **Custom Metrics:** Business-specific KPIs.
+
+## 3. Distributed Tracing
+
+**Tools:** Sleuth and Zipkin
+
+| Component | Purpose |
+|---|---|
+| Sleuth | Distributed tracing |
+| Zipkin | Trace visualization |
+| Trace IDs | Correlate requests across services |
+| Span Tracking | Track operation timing |
+
+---
+
+# 🚀 Deployment Architecture
+
+The architecture supports containerized deployment and multiple environments.
+
+## 1. Container Orchestration
+
+| Technology | Purpose |
+|---|---|
+| Docker Containers | Application service packaging |
+| Kubernetes | Container orchestration |
+| Istio | Service mesh and advanced networking |
+| CI/CD | Automated deployment pipelines |
+
+## 2. Environment Strategy
+
+| Environment | Deployment Strategy |
+|---|---|
+| Development | Local Docker Compose |
+| Staging | Production-like environment |
+| Production | High-availability setup |
+
+---
+
+# 🔗 Service Dependencies
+
+## 1. Infrastructure Dependencies
+
+| Service | Database | Redis | Kafka | External APIs |
+|---|:---:|:---:|:---:|:---:|
+| API Gateway | ✅ | ✅ | ✅ | ✅ |
+| User Service | ✅ | ✅ | ✅ | ❌ |
+| Event Service | ✅ | ✅ | ✅ | ❌ |
+| Ticket Service | ✅ | ✅ | ✅ | ❌ |
+| Order Service | ✅ | ✅ | ✅ | ✅ |
+| Payment Service | ✅ | ✅ | ✅ | ✅ |
+| Notification Service | ✅ | ✅ | ✅ | ✅ |
+
+## 2. Service Dependencies
+
+| Service | Depends On | Communication |
+|---|---|---|
+| API Gateway | User Service | Synchronous (JWT validation) |
+| Order Service | User, Ticket, Payment Services | Synchronous (REST) |
+| Notification Service | All Services | Asynchronous (Kafka) |
+| Payment Service | Order Service | Synchronous (REST) |
+
+---
+
+# 🎯 Key Design Principles
+
+The architecture follows these core software design principles:
+
+| Principle | Description |
+|---|---|
+| **Single Responsibility** | Each service has one well-defined business responsibility. |
+| **Loose Coupling** | Services communicate through APIs and events rather than direct dependencies. |
+| **High Cohesion** | Related functionality stays within its business domain. |
+| **Fault Tolerance** | Services handle failures through circuit breakers and fallbacks. |
+| **Scalability** | Services can scale independently based on demand. |
+| **Observability** | Centralized monitoring, logging, and distributed tracing. |
+| **Security** | Multiple security layers with authentication and authorization. |
+
+---
+
+# 📌 Conclusion
+
+The **Ticket Management System** provides a microservices-based foundation for managing users, events, tickets, orders, payments, and notifications.
+
+By separating business responsibilities into 7 independent services and using PostgreSQL, Redis, Kafka, and supporting infrastructure, the architecture is designed to support:
+
+- Independent service development and deployment.
+- Scalable business operations.
+- Asynchronous event-driven communication.
+- Reliable order and payment processing.
+- Centralized API access and security.
+- Monitoring and tracing across services.
+
+**The goal is to build a scalable, maintainable, and reliable Ticket Management Platform using Spring Boot Microservices.**
