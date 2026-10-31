@@ -4,8 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.bunli.common.exception.ResponseErrorTemplate;
-import com.codestorykh.user.dto.request.CreatePermissionRequest;
-import com.codestorykh.user.service.PermissionService;
+import com.bunli.user.dto.request.CreatePermissionRequest;
+import com.bunli.user.service.PermissionService;
 
 @RestController
 @RequestMapping("/api/permissions")

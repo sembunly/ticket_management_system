@@ -17,8 +17,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import com.bunli.common.constant.ApiConstant;
 import com.bunli.common.dto.EmptyObject;
 import com.bunli.common.exception.CustomMessageException;
-import com.codestorykh.user.entity.User;
-import com.codestorykh.user.repository.UserRepository;
+import com.bunli.user.entity.User;
+import com.bunli.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
