@@ -36,7 +36,7 @@ The API Gateway implements a centralized authentication system where:
 
 ### 2. API Gateway JWT Authentication Filter
 
-**Location**: `api-gateway/src/main/java/com/codestorykh/apigateway/filter/JwtAuthenticationFilter.java`
+**Location**: `api-gateway/src/main/java/com/bunli/apigateway/filter/JwtAuthenticationFilter.java`
 
 **Features**:
 - Intercepts all requests except public paths
@@ -153,7 +153,7 @@ Enable debug logging in API Gateway:
 ```yaml
 logging:
   level:
-    com.codestorykh.apigateway.filter: DEBUG
+    com.bunli.apigateway.filter: DEBUG
 ```
 
 ## Future Enhancements
