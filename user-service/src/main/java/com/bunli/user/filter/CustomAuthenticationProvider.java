@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -18,6 +19,7 @@ import com.bunli.common.constant.ApiConstant;
 import com.bunli.common.dto.EmptyObject;
 import com.bunli.common.exception.CustomMessageException;
 import com.bunli.user.entity.User;
+import com.bunli.user.entity.Role;
 import com.bunli.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;

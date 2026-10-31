@@ -1,4 +1,4 @@
-package com.bunli.ticket.service;
+package com.bunli.ticket.ticket.service;
 
 import com.bunli.common.exception.ResponseErrorTemplate;
 import com.bunli.ticket.dto.TicketLockRequest;

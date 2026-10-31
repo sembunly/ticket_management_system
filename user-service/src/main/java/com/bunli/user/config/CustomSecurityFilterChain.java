@@ -57,6 +57,12 @@ public class CustomSecurityFilterChain extends JwtConfigProperties {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html",
+                                                                "/webjars/**")
+                                                .permitAll()
+                                                .requestMatchers(
                                                                 "api/public/users/**")
                                                 .permitAll()
                                                 .requestMatchers("/api/users/**")
