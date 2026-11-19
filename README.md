@@ -75,7 +75,7 @@ Register a user:
 ```bash
 curl -X POST http://localhost:8081/api/public/users/registration \
   -H "Content-Type: application/json" \
-  -d '{"username":"sokha","password":"Sokha123!","email":"sokha@example.com","first_name":"Sokha","last_name":"Chan"}'
+  -d '{"username":"sembunly","password":"0000","email":"bunlysem@gmail.com","first_name":"Bunly","last_name":"SEM"}'
 ```
 
 Log in:
@@ -83,7 +83,7 @@ Log in:
 ```bash
 curl -X POST http://localhost:8081/api/public/users/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"sokha","password":"Sokha123!"}'
+  -d '{"username":"sembunly","password":"0000"}'
 ```
 
 Use the returned access token on protected endpoints:
